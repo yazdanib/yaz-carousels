@@ -50,7 +50,13 @@ Ask (in one message, not five separate ones):
 
 ### 3. Ask about images, but don't block on it
 
-"Do you have any photos you want used on specific slides? If not, that's totally fine, text-only slides on a brand-coloured background work well for this format." If they say no, proceed with solid-colour slides. Don't treat this as a blocker.
+"Do you have any photos you want used on specific slides, or should I pull matching stock photos from Pexels, or keep it text-only?" All three are fine, don't treat this as a blocker.
+
+- **Their own photos:** use the file path directly as a slide's `background_image`.
+- **Pexels stock photos:** `scripts/pexels_photo.py "search terms" --list` to see a few candidates before committing, then `--out path/to/image.jpg` to download one. Always look at more than one candidate. Check each for: no competing brand's logo visible in the shot, a background that isn't distractingly cluttered, and that it actually shows the specific thing being described, not just a generic vibe. Needs `PEXELS_API_KEY` (same free key as any other Pexels use).
+- **Neither:** text-only slides on the brand-coloured background. This is a completely normal, high-performing carousel style, not a fallback to apologise for.
+
+Only use an image where it earns its place, e.g. demonstrating a physical position or a visual comparison. A slide that's just restating the headline over a generic stock photo is worse than the same slide in plain text.
 
 ### 4. Write the copy
 

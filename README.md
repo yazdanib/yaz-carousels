@@ -21,6 +21,8 @@ git clone https://github.com/yazdanib/yaz-carousels.git ~/.claude/skills/yaz-car
 
 No `pip install` needed, this only uses Python's standard library. The one real requirement is **Google Chrome** (or Chromium) installed, since that's what renders each slide to an exact-pixel image.
 
+If you want real stock photos on any slides instead of text-only, set `PEXELS_API_KEY` (free at pexels.com/api, no card needed). Not required if you're only using your own images or going text-only.
+
 ## Use it
 
 Open Claude Code and just describe the carousel:
@@ -48,6 +50,7 @@ python3 scripts/render_carousel.py spec.json --out slides/
 | Script | Does |
 |---|---|
 | `fetch_fonts.py` | Downloads a Google Fonts pairing and embeds it as self-contained base64 CSS, no external requests at render time |
+| `pexels_photo.py` | Searches and downloads a matching vertical stock photo from Pexels, for slides that want a real image instead of text-only |
 | `render_carousel.py` | Turns a spec JSON into numbered 1080x1350 PNG slides via headless Chrome screenshot mode |
 
 ## Spec schema
