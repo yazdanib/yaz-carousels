@@ -16,12 +16,18 @@ Turns a topic into a finished, ready-to-upload Instagram carousel: real copy (no
 - **One idea per slide, never a paragraph.** If it takes more than one or two short sentences, it's two slides.
 - **Say something specific, not generic.** A real mechanism, a real opinion, a real number beats a platitude every time. If the brief doesn't give you enough to be specific, ask a follow-up rather than writing filler.
 - **The CTA is never "follow for more."** It's a specific action: comment a keyword, save it, share it with someone, click a link. Always confirm the exact wording with the user before it renders (step 5 below), it's the one slide tied to their actual funnel.
+- **Word counts are hard caps, not suggestions.** The renderer sizes text large by default; a headline that's actually short is what makes that large size work. Over these caps and count as a rewrite, not a font-size problem:
+  - Cover headline: **8 words max.** This is the biggest text on the whole carousel, it needs to be the shortest. If your draft is longer, cut it, don't shrink the font to fit it.
+  - Hook2 headline: 10 words max, no body text unless it's genuinely one short clause.
+  - Content headline: 8 words max. Body: one sentence, 12 words max. If you need two sentences, that's two slides.
+  - CTA headline: 8 words max. Body: one sentence, 10 words max.
+- **When in doubt, cut the sentence in half and check it still means the same thing.** If it doesn't, the first draft was carrying two ideas that belong on separate slides.
 
 ## The structure (this is fixed, don't deviate from the shape)
 
 | Slide | Type | Job |
 |---|---|---|
-| 1 | `cover` | Attention. Big headline hook. Withholds the answer, never states the topic flatly. Shows the handle/name or logo. |
+| 1 | `cover` | Attention. The largest text in the whole carousel and the fewest words. Withholds the answer, never states the topic flatly. Shows the handle/name or logo. |
 | 2 | `hook2` | Attention/Interest bridge. A SECOND hook, sharper or more specific than slide 1. Never just restates slide 1, it escalates the tension. This is the slide most carousels skip, and it's the one that decides if people swipe past slide 2 or keep going. |
 | 3 to N-1 | `content` | Interest, then Desire. One idea per slide, never a paragraph. Early content slides build interest (name the problem, the mechanism, the mistake). Later ones build desire (the payoff, the result, why it matters). |
 | N | `cta` | Action. One specific, concrete ask. Never "follow for more." |

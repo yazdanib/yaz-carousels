@@ -1,5 +1,5 @@
 {
-  "_comment": "This is the schema reference AND the generic default look (used when the user has no brand colours/fonts of their own). Copy this file per project, don't edit it in place.",
+  "_comment": "This is the schema reference AND the generic default look (used when the user has no brand colours/fonts of their own). Copy this file per project, don't edit it in place. Headline lengths here also model the word caps in SKILL.md: cover 8 words max, hook2/content/cta similar.",
   "palette": {
     "bg": "#F6F7FB",
     "ink": "#12151C",
@@ -18,27 +18,26 @@
     {
       "type": "cover",
       "kicker": "Topic label",
-      "headline": "A headline that withholds the answer, never states the topic flatly",
+      "headline": "A headline that never gives away the answer",
       "swipe_hint": "Swipe →"
     },
     {
       "type": "hook2",
       "kicker": "A second, sharper hook",
-      "headline": "Escalates the tension from slide 1, still doesn't give away the payoff",
-      "body": "Optional one-line support, keep it short"
+      "headline": "Escalates slide 1, still doesn't reveal the payoff"
     },
     {
       "type": "content",
       "kicker": "Worth knowing",
       "badge_icon": "✓",
       "headline": "One idea per slide",
-      "body": "One or two plain sentences max. Never a paragraph."
+      "body": "One short sentence. Never a paragraph."
     },
     {
       "type": "cta",
       "kicker": "Your turn",
-      "headline": "A specific ask, never just 'follow for more'",
-      "body": "One sentence saying exactly what happens next",
+      "headline": "A specific ask, never 'follow for more'",
+      "body": "One sentence saying exactly what happens next.",
       "cta_text": "Comment WORD ↓"
     }
   ]
