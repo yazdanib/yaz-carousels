@@ -101,23 +101,34 @@ html,body{{
 .scrim{{ position:absolute; inset:0; background:linear-gradient(180deg, rgba(0,0,0,.15), rgba(0,0,0,.55)); z-index:1; }}
 .content{{ position:relative; z-index:2; height:100%; display:flex; flex-direction:column; }}
 .headline{{ font-family:'{spec.get("headline_font","Fraunces")}',Georgia,serif; font-weight:700;
-            line-height:1.06; letter-spacing:-.5px; }}
+            line-height:1.08; letter-spacing:-.5px; }}
 .body-text{{ font-size:34px; line-height:1.45; font-weight:400; }}
-.kicker{{ font-size:24px; font-weight:600; letter-spacing:.14em; text-transform:uppercase; }}
+/* Pill-shaped badge for the kicker/label, sits pinned near the top,
+   independent of the headline block below it (not stacked as one
+   vertically-centered group). */
+.badge-pill{{ display:inline-flex; align-items:center; gap:12px; padding:16px 30px;
+              border-radius:100px; font-size:24px; font-weight:700; width:fit-content; }}
+.badge-pill .icon{{ width:30px; height:30px; border-radius:50%; display:flex;
+                     align-items:center; justify-content:center; font-size:16px;
+                     font-weight:900; flex:0 0 auto; }}
 .badge{{ display:flex; align-items:center; gap:14px; }}
 .badge img{{ width:52px; height:52px; border-radius:50%; object-fit:cover; }}
 .badge .names{{ display:flex; flex-direction:column; line-height:1.25; }}
 .badge .handle{{ font-weight:700; font-size:24px; }}
 .badge .display-name{{ font-size:19px; opacity:.75; }}
-.pagecount{{ position:absolute; top:{SAFE_MARGIN}px; right:{SAFE_MARGIN}px; font-size:22px;
-             font-weight:600; z-index:2; }}
-.cta-pill{{ display:inline-block; padding:20px 40px; border-radius:100px; font-weight:700;
-            font-size:30px; }}
-.swipe-hint{{ font-size:22px; font-weight:600; letter-spacing:.06em; text-transform:uppercase; opacity:.8; }}
+/* Corner pins, positioned relative to .content which is already inset by
+   .slide's padding, so these sit at exactly SAFE_MARGIN from the true
+   canvas edge, not stacked on top of another margin. */
+.pagecount{{ position:absolute; bottom:0; left:0; font-size:22px; font-weight:600; z-index:2; }}
+.swipe-pin{{ position:absolute; bottom:0; right:0; font-size:22px; font-weight:600;
+             letter-spacing:.04em; z-index:2; }}
+.cta-pill{{ display:inline-block; padding:22px 44px; border-radius:100px; font-weight:700;
+            font-size:30px; width:fit-content; }}
 """
 
 
 def render_badge(spec: dict, text_color: str) -> str:
+    """The handle/logo mark, pinned near the top of cover/cta slides."""
     logo = spec.get("logo")
     if logo:
         logo_data = embed_image(logo)
@@ -132,6 +143,24 @@ def render_badge(spec: dict, text_color: str) -> str:
             f'</div></div>')
 
 
+def render_badge_pill(slide: dict, pal: dict, on_colored_bg: bool) -> str:
+    """The kicker as a pill-shaped chip, not a plain text label. Sits
+    pinned near the top of the slide, independent of the headline block
+    that follows it lower down. Text case is whatever was passed in, not
+    forced to uppercase."""
+    label = slide.get("kicker", "")
+    if not label:
+        return ""
+    icon = slide.get("badge_icon", "")
+    if on_colored_bg:
+        bg, color = "rgba(255,255,255,.16)", pal.get("on_accent", "#FFFFFF")
+    else:
+        bg, color = f"color-mix(in srgb, {pal['accent']} 14%, white)", pal["accent"]
+    icon_html = f'<span class="icon" style="background:{bg};">{esc(icon)}</span>' if icon else ""
+    return (f'<div class="badge-pill" style="background:{bg}; color:{color};">'
+            f'{icon_html}{esc(label)}</div>')
+
+
 def render_slide_html(spec: dict, slide: dict, index: int, total: int) -> str:
     pal = spec["palette"]
     stype = slide.get("type", "content")
@@ -143,52 +172,57 @@ def render_slide_html(spec: dict, slide: dict, index: int, total: int) -> str:
     else:
         text_color = pal["ink"] if slide.get("light_bg", stype not in ("cover", "hook2", "cta")) else pal.get("on_accent", "#FFFFFF")
 
+    on_colored_bg = bool(bg_image_data) or slide.get("light_bg", stype not in ("cover", "hook2", "cta")) is False
     slide_bg = pal["bg"] if slide.get("light_bg", stype not in ("cover", "hook2", "cta")) else pal["accent"]
     if bg_image_data:
         slide_bg = "transparent"
 
     body_html = ""
 
+    # Layout grammar, all four types: any top mark (handle/logo or badge
+    # pill) is pinned near the top with NO auto margin, then the headline
+    # block is pushed down with margin-top:auto so it settles in the lower
+    # portion rather than sitting dead-centre, with a reserved bottom gap
+    # so it never collides with a corner-pinned page number or swipe hint.
+
     if stype == "cover":
         badge = render_badge(spec, text_color)
         body_html = f"""
-          <div style="margin-top:auto;">{badge}</div>
-          <div style="margin-top:auto;">
-            <div class="kicker" style="color:{pal.get('accent2', text_color)}; margin-bottom:18px;">{esc(slide.get('kicker',''))}</div>
-            <div class="headline" style="font-size:{slide.get('headline_size',86)}px; color:{text_color};">{slide['headline']}</div>
+          <div>{badge}</div>
+          <div style="margin-top:auto; margin-bottom:150px;">
+            {render_badge_pill(slide, pal, on_colored_bg) if slide.get('kicker') else ""}
+            <div class="headline" style="font-size:{slide.get('headline_size',84)}px; color:{text_color}; margin-top:{18 if slide.get('kicker') else 0}px;">{slide['headline']}</div>
           </div>
-          <div style="margin-top:36px;">
-            <div class="swipe-hint" style="color:{text_color};">{esc(slide.get('swipe_hint','Swipe →'))}</div>
-          </div>
+          <div class="swipe-pin" style="color:{text_color};">{esc(slide.get('swipe_hint','Swipe →'))}</div>
         """
     elif stype == "hook2":
         body_html = f"""
-          <div style="margin-top:auto; margin-bottom:auto;">
-            <div class="kicker" style="color:{pal.get('accent2', text_color)}; margin-bottom:18px;">{esc(slide.get('kicker',''))}</div>
-            <div class="headline" style="font-size:{slide.get('headline_size',68)}px; color:{text_color};">{slide['headline']}</div>
+          <div>{render_badge_pill(slide, pal, on_colored_bg)}</div>
+          <div style="margin-top:auto; margin-bottom:150px;">
+            <div class="headline" style="font-size:{slide.get('headline_size',66)}px; color:{text_color};">{slide['headline']}</div>
             {"<div class='body-text' style='margin-top:26px; color:" + text_color + ";'>" + esc(slide.get('body','')) + "</div>" if slide.get('body') else ""}
           </div>
         """
     elif stype == "cta":
         badge = render_badge(spec, text_color)
         body_html = f"""
-          <div style="margin-top:auto; margin-bottom:auto;">
-            <div class="kicker" style="color:{pal.get('accent2', text_color)}; margin-bottom:18px;">{esc(slide.get('kicker',''))}</div>
-            <div class="headline" style="font-size:{slide.get('headline_size',64)}px; color:{text_color}; margin-bottom:24px;">{slide['headline']}</div>
-            <div class="body-text" style="color:{text_color}; margin-bottom:38px;">{esc(slide.get('body',''))}</div>
+          <div>{badge}</div>
+          <div style="margin-top:auto;">
+            {render_badge_pill(slide, pal, on_colored_bg) if slide.get('kicker') else ""}
+            <div class="headline" style="font-size:{slide.get('headline_size',60)}px; color:{text_color}; margin-top:{18 if slide.get('kicker') else 0}px; margin-bottom:24px;">{slide['headline']}</div>
+            <div class="body-text" style="color:{text_color}; margin-bottom:60px;">{esc(slide.get('body',''))}</div>
             <div class="cta-pill" style="background:{pal.get('on_accent','#FFFFFF')}; color:{pal['accent']};">{esc(slide['cta_text'])}</div>
           </div>
-          <div style="margin-top:auto;">{badge}</div>
         """
     else:  # content
         num_label = f'{index:02d}' if slide.get("show_number", True) else ""
         body_html = f"""
-          <div class="pagecount" style="color:{text_color}; opacity:.55;">{num_label}/{total-1:02d}</div>
-          <div style="margin-top:auto; margin-bottom:auto;">
-            {"<div class='kicker' style='color:" + pal.get('accent2', pal['accent']) + "; margin-bottom:18px;'>" + esc(slide.get('kicker','')) + "</div>" if slide.get('kicker') else ""}
-            <div class="headline" style="font-size:{slide.get('headline_size',56)}px; color:{text_color}; margin-bottom:28px;">{slide['headline']}</div>
+          <div>{render_badge_pill(slide, pal, on_colored_bg)}</div>
+          <div style="margin-top:auto; margin-bottom:130px;">
+            <div class="headline" style="font-size:{slide.get('headline_size',54)}px; color:{text_color}; margin-bottom:28px;">{slide['headline']}</div>
             {"<div class='body-text' style='color:" + text_color + ";'>" + esc(slide.get('body','')) + "</div>" if slide.get('body') else ""}
           </div>
+          <div class="pagecount" style="color:{text_color}; opacity:.55;">{num_label}/{total-1:02d}</div>
         """
 
     return f"""<!DOCTYPE html>

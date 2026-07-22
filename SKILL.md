@@ -28,6 +28,14 @@ Turns a topic into a finished, ready-to-upload Instagram carousel: real copy (no
 
 That's AIDA: Attention (1-2), Interest (early content), Desire (late content), Action (last slide).
 
+## Layout convention (the renderer already does this, don't fight it)
+
+- **The kicker is a pill-shaped chip, not plain coloured text.** Pinned near the top of the slide, on its own, not stacked as part of the centred headline group.
+- **The headline and body sit lower in the frame, not dead-centre.** There's a deliberate gap between the top-pinned pill and the headline block below it. This is what gives a slide breathing room instead of looking like a wall of centred text.
+- **Page numbers sit bottom-left, small and muted.** Not top-right.
+- **CTA buttons and swipe hints are bottom-anchored**, with real margin above the true edge, not flush against it.
+- **Use a genuinely bright, saturated colour for the cover/hook2/cta slides, never near-black.** A dark neutral reads as heavy and downbeat; a bright colour reads as energetic and is what makes a text-only slide still feel designed. If a brand's actual colour is dark, that's fine, but don't default to near-black when nothing else was specified.
+
 ## Format facts (don't guess these, they're checked)
 
 - **1080x1350 pixels, 4:5 portrait.** Not square. This is Instagram's current default carousel size and it fills more of the feed than square does.
