@@ -1,0 +1,44 @@
+{
+  "_comment": "This is the schema reference AND the generic default look (used when the user has no brand colours/fonts of their own). Copy this file per project, don't edit it in place.",
+  "palette": {
+    "bg": "#F5F3EE",
+    "ink": "#17181C",
+    "accent": "#14151A",
+    "accent2": "#C98A3B",
+    "on_accent": "#FFFFFF",
+    "muted": "#5B5B57"
+  },
+  "fonts_css": "fonts.css",
+  "headline_font": "Fraunces",
+  "body_font": "Inter",
+  "handle": "@yourhandle",
+  "display_name": "Your Name",
+  "logo": null,
+  "slides": [
+    {
+      "type": "cover",
+      "kicker": "TOPIC LABEL",
+      "headline": "A headline that withholds the answer, never states the topic flatly",
+      "swipe_hint": "Swipe →"
+    },
+    {
+      "type": "hook2",
+      "kicker": "A SECOND, SHARPER HOOK",
+      "headline": "Escalates the tension from slide 1, still doesn't give away the payoff",
+      "body": "Optional one-line support, keep it short"
+    },
+    {
+      "type": "content",
+      "kicker": "01",
+      "headline": "One idea per slide",
+      "body": "One or two plain sentences max. Never a paragraph."
+    },
+    {
+      "type": "cta",
+      "kicker": "YOUR TURN",
+      "headline": "A specific ask, never just 'follow for more'",
+      "body": "One sentence saying exactly what happens next",
+      "cta_text": "Comment WORD ↓"
+    }
+  ]
+}

@@ -1,0 +1,7 @@
+__pycache__/
+*.pyc
+.DS_Store
+
+# generated at runtime in a user's own project folder, not in this repo
+# (templates/fonts.css is a real checked-in asset, not runtime output)
+_slide-*.html
