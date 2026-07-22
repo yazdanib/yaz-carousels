@@ -99,10 +99,11 @@ html,body{{
          padding:{SAFE_MARGIN}px; overflow:hidden; }}
 .bg-image{{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; z-index:0; }}
 .scrim{{ position:absolute; inset:0; background:linear-gradient(180deg, rgba(0,0,0,.15), rgba(0,0,0,.55)); z-index:1; }}
-.content{{ position:relative; z-index:2; height:100%; display:flex; flex-direction:column; }}
+.content{{ position:relative; z-index:2; height:100%; display:flex; flex-direction:column;
+           align-items:center; text-align:center; }}
 .headline{{ font-family:'{spec.get("headline_font","Fraunces")}',Georgia,serif; font-weight:700;
-            line-height:1.08; letter-spacing:-.5px; }}
-.body-text{{ font-size:34px; line-height:1.45; font-weight:400; }}
+            line-height:1.08; letter-spacing:-.5px; width:100%; }}
+.body-text{{ font-size:38px; line-height:1.45; font-weight:400; width:100%; }}
 /* Pill-shaped badge for the kicker/label, sits pinned near the top,
    independent of the headline block below it (not stacked as one
    vertically-centered group). */
@@ -189,17 +190,17 @@ def render_slide_html(spec: dict, slide: dict, index: int, total: int) -> str:
         badge = render_badge(spec, text_color)
         body_html = f"""
           <div>{badge}</div>
-          <div style="margin-top:auto; margin-bottom:150px;">
+          <div style="margin-top:auto; margin-bottom:150px; width:100%;">
             {render_badge_pill(slide, pal, on_colored_bg) if slide.get('kicker') else ""}
-            <div class="headline" style="font-size:{slide.get('headline_size',84)}px; color:{text_color}; margin-top:{18 if slide.get('kicker') else 0}px;">{slide['headline']}</div>
+            <div class="headline" style="font-size:{slide.get('headline_size',112)}px; color:{text_color}; margin-top:{18 if slide.get('kicker') else 0}px;">{slide['headline']}</div>
           </div>
           <div class="swipe-pin" style="color:{text_color};">{esc(slide.get('swipe_hint','Swipe →'))}</div>
         """
     elif stype == "hook2":
         body_html = f"""
           <div>{render_badge_pill(slide, pal, on_colored_bg)}</div>
-          <div style="margin-top:auto; margin-bottom:150px;">
-            <div class="headline" style="font-size:{slide.get('headline_size',66)}px; color:{text_color};">{slide['headline']}</div>
+          <div style="margin-top:auto; margin-bottom:150px; width:100%;">
+            <div class="headline" style="font-size:{slide.get('headline_size',78)}px; color:{text_color};">{slide['headline']}</div>
             {"<div class='body-text' style='margin-top:26px; color:" + text_color + ";'>" + esc(slide.get('body','')) + "</div>" if slide.get('body') else ""}
           </div>
         """
@@ -207,9 +208,9 @@ def render_slide_html(spec: dict, slide: dict, index: int, total: int) -> str:
         badge = render_badge(spec, text_color)
         body_html = f"""
           <div>{badge}</div>
-          <div style="margin-top:auto;">
+          <div style="margin-top:auto; width:100%;">
             {render_badge_pill(slide, pal, on_colored_bg) if slide.get('kicker') else ""}
-            <div class="headline" style="font-size:{slide.get('headline_size',60)}px; color:{text_color}; margin-top:{18 if slide.get('kicker') else 0}px; margin-bottom:24px;">{slide['headline']}</div>
+            <div class="headline" style="font-size:{slide.get('headline_size',70)}px; color:{text_color}; margin-top:{18 if slide.get('kicker') else 0}px; margin-bottom:24px;">{slide['headline']}</div>
             <div class="body-text" style="color:{text_color}; margin-bottom:60px;">{esc(slide.get('body',''))}</div>
             <div class="cta-pill" style="background:{pal.get('on_accent','#FFFFFF')}; color:{pal['accent']};">{esc(slide['cta_text'])}</div>
           </div>
@@ -218,8 +219,8 @@ def render_slide_html(spec: dict, slide: dict, index: int, total: int) -> str:
         num_label = f'{index:02d}' if slide.get("show_number", True) else ""
         body_html = f"""
           <div>{render_badge_pill(slide, pal, on_colored_bg)}</div>
-          <div style="margin-top:auto; margin-bottom:130px;">
-            <div class="headline" style="font-size:{slide.get('headline_size',54)}px; color:{text_color}; margin-bottom:28px;">{slide['headline']}</div>
+          <div style="margin-top:auto; margin-bottom:130px; width:100%;">
+            <div class="headline" style="font-size:{slide.get('headline_size',62)}px; color:{text_color}; margin-bottom:28px;">{slide['headline']}</div>
             {"<div class='body-text' style='color:" + text_color + ";'>" + esc(slide.get('body','')) + "</div>" if slide.get('body') else ""}
           </div>
           <div class="pagecount" style="color:{text_color}; opacity:.55;">{num_label}/{total-1:02d}</div>
