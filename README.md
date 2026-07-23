@@ -82,6 +82,8 @@ All file paths in a spec (`fonts_css`, `logo`, any slide's `background_image`) a
 
 Headline and body text render left-aligned by default. Slide 2 onward, the pill+headline+body group sits vertically centred in the frame rather than pinned to the bottom. A `content` slide with `"punch": true` is the exception: one big statement, no pill, no body, centred both ways, meant for a plot-twist or closure moment, used sparingly, and always set in `punch_font` if one is configured.
 
+The cover slide has two looks, chosen automatically: text-only fills ~75% of the frame with huge centred text, while a cover with a `background_image` set switches to the same inset/rounded-frame look as a Style B video cover (see below), photo smaller with rounded corners, display name/handle/swipe hint in the margin around it, headline overlaid on the photo. No flag needed, it's just whether `background_image` is set on that slide.
+
 Set `punch_font` (e.g. `"Anton"`) for a bolder display face reserved for `punch` slides. A cover headline can mix it with the regular `headline_font` by wrapping words in `**double asterisks**`, they render uppercase in `punch_font`, the rest stays in `headline_font`.
 
 ## Style B: a video cover

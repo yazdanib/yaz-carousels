@@ -55,6 +55,19 @@ CANVAS_W = 1080
 CANVAS_H = 1350
 SAFE_MARGIN = 84  # comfortably wider than IG's 34px grid-crop margin
 
+# A cover slide with a background_image uses this same inset/rounded-corner
+# framing as the Style B video cover (render_video_cover.py), rather than a
+# full-bleed image: the photo sits smaller with rounded corners inside a
+# margin that carries the display name/handle/swipe hint. Kept identical to
+# render_video_cover.py's VIDEO_X/Y/W/H so Style A and Style B covers match.
+MEDIA_TOP_H = 140
+MEDIA_BOTTOM_H = 140
+MEDIA_CORNER_RADIUS = 32
+MEDIA_X = SAFE_MARGIN
+MEDIA_W = CANVAS_W - 2 * SAFE_MARGIN
+MEDIA_Y = SAFE_MARGIN + MEDIA_TOP_H
+MEDIA_H = CANVAS_H - SAFE_MARGIN - MEDIA_BOTTOM_H - MEDIA_Y
+
 
 def find_chrome() -> str:
     candidates = [
@@ -210,16 +223,25 @@ def render_slide_html(spec: dict, slide: dict, index: int, total: int) -> str:
     pal = spec["palette"]
     stype = slide.get("type", "content")
     bg_image_data = embed_image(slide.get("background_image"))
+    # A cover with an image gets the Style-B-style inset/rounded frame
+    # instead of a full-bleed photo: see MEDIA_* constants and the cover
+    # branch below. Every other image slide keeps the plain full-bleed
+    # treatment (bg_layer + scrim).
+    is_framed_cover = stype == "cover" and bool(bg_image_data)
     bg_layer = ""
-    if bg_image_data:
+    if bg_image_data and not is_framed_cover:
         bg_layer = f'<img class="bg-image" src="{bg_image_data}"><div class="scrim"></div>'
+        text_color = pal.get("on_image", "#FFFFFF")
+    elif is_framed_cover:
         text_color = pal.get("on_image", "#FFFFFF")
     else:
         text_color = pal["ink"] if slide.get("light_bg", stype not in ("cover", "hook2", "cta")) else pal.get("on_accent", "#FFFFFF")
 
     on_colored_bg = bool(bg_image_data) or slide.get("light_bg", stype not in ("cover", "hook2", "cta")) is False
     slide_bg = pal["bg"] if slide.get("light_bg", stype not in ("cover", "hook2", "cta")) else pal["accent"]
-    if bg_image_data:
+    if is_framed_cover:
+        slide_bg = slide.get("frame_color", pal.get("bg", "#FFFFFF"))
+    elif bg_image_data:
         slide_bg = "transparent"
 
     body_html = ""
@@ -238,7 +260,41 @@ def render_slide_html(spec: dict, slide: dict, index: int, total: int) -> str:
     headline_font = spec.get("headline_font", "Fraunces")
     punch_font = spec.get("punch_font", headline_font)
 
-    if stype == "cover":
+    if is_framed_cover:
+        # Same inset/rounded-frame layout as the Style B video cover: the
+        # image sits smaller with rounded corners inside a margin, display
+        # name top-left, handle bottom-left, swipe hint bottom-right, all in
+        # the margin rather than over the photo. Pure CSS, no ffmpeg needed,
+        # a static image doesn't need the video pipeline's alpha-mask trick.
+        display_name = esc(spec.get("display_name", ""))
+        handle = esc(spec.get("handle", ""))
+        headline_html = render_mixed_headline(slide["headline"], punch_font, headline_font)
+        # These are positioned relative to .content, which is itself inset
+        # by SAFE_MARGIN already (via .slide's padding), so offsets here are
+        # 0-based, same as .pagecount/.swipe-pin below, not SAFE_MARGIN-based
+        # like render_video_cover.py's full-canvas coordinate system.
+        body_html = f"""
+          <div style="position:absolute; top:0; left:0;
+                      height:{MEDIA_TOP_H - SAFE_MARGIN}px; display:flex; align-items:center;
+                      font-weight:700; font-size:28px; color:{pal['ink']};">{display_name}</div>
+          <div style="position:absolute; left:0; top:{MEDIA_TOP_H}px; width:{MEDIA_W}px;
+                      height:{MEDIA_H}px; border-radius:{MEDIA_CORNER_RADIUS}px; overflow:hidden;">
+            <img src="{bg_image_data}" style="position:absolute; inset:0; width:100%; height:100%; object-fit:cover;">
+            <div style="position:absolute; inset:0; background:linear-gradient(180deg, rgba(0,0,0,.62) 0%, rgba(0,0,0,0) 48%);"></div>
+            <div style="position:absolute; inset:0; padding:36px; display:flex; flex-direction:column;
+                        align-items:flex-start; justify-content:flex-start;">
+              <div class="headline" style="font-size:{slide.get('headline_size',80)}px; color:{text_color};
+                          text-shadow:0 2px 14px rgba(0,0,0,.45), 0 1px 4px rgba(0,0,0,.6);">{headline_html}</div>
+            </div>
+          </div>
+          <div style="position:absolute; bottom:0; left:0;
+                      height:{MEDIA_BOTTOM_H - SAFE_MARGIN}px; display:flex; align-items:center;
+                      font-weight:700; font-size:24px; color:{pal['ink']};">{handle}</div>
+          <div style="position:absolute; bottom:0; right:0;
+                      height:{MEDIA_BOTTOM_H - SAFE_MARGIN}px; display:flex; align-items:center;
+                      font-weight:600; font-size:22px; letter-spacing:.04em; color:{pal.get('muted', pal['ink'])};">{esc(slide.get('swipe_hint','Swipe →'))}</div>
+        """
+    elif stype == "cover":
         badge = render_badge(spec, text_color)
         headline_html = render_mixed_headline(slide["headline"], punch_font, headline_font)
         body_html = f"""
