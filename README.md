@@ -52,6 +52,7 @@ python3 scripts/render_carousel.py spec.json --out slides/
 | `fetch_fonts.py` | Downloads a Google Fonts pairing and embeds it as self-contained base64 CSS, no external requests at render time |
 | `pexels_photo.py` | Searches and downloads a matching vertical stock photo from Pexels, for slides that want a real image instead of text-only |
 | `render_carousel.py` | Turns a spec JSON into numbered 1080x1350 PNG slides via headless Chrome screenshot mode |
+| `render_video_cover.py` | Style B only: crops a source video to the carousel frame and overlays a headline + handle on top, for a video-first carousel |
 
 ## Spec schema
 
@@ -67,15 +68,42 @@ See [`templates/example-spec.json`](templates/example-spec.json) for a complete,
   "display_name": "Your Name",
   "logo": null,
   "slides": [
-    {"type": "cover", "kicker": "...", "headline": "...", "swipe_hint": "Swipe →"},
+    {"type": "cover", "kicker": "...", "headline": "..."},
     {"type": "hook2", "kicker": "...", "headline": "..."},
     {"type": "content", "headline": "...", "body": "..."},
+    {"type": "content", "punch": true, "headline": "One big centred statement"},
     {"type": "cta", "kicker": "...", "headline": "...", "body": "...", "cta_text": "..."}
   ]
 }
 ```
 
 All file paths in a spec (`fonts_css`, `logo`, any slide's `background_image`) are relative to the spec file itself, not to whatever directory you happen to run the script from.
+
+Headline and body text render left-aligned by default. A `content` slide with `"punch": true` is the exception: one big statement, no pill, no body, centred both ways, meant for a plot-twist or closure moment, used sparingly.
+
+## Style B: a video cover
+
+Instead of every slide being a rendered PNG, Style B swaps the cover for an actual video with the headline and handle overlaid on top, cropped to the carousel frame, inside a light frame border, then continues as normal PNG slides from slide 2 on. This is the "video carousel" pattern some creators use for their opening slide.
+
+```bash
+python3 scripts/render_video_cover.py raw/cover.mp4 --spec spec.json --out slides/slide-01.mp4
+python3 scripts/render_carousel.py spec.json --out slides/   # slides 2+
+```
+
+Add a `cover_video` block to the spec:
+
+```json
+{
+  "cover_video": {
+    "source": "raw/cover.mp4",
+    "headline": "start here",
+    "position": "upper-left",
+    "frame": true
+  }
+}
+```
+
+You upload the `.mp4` as position 1 and the `.png` files as the rest, directly in Instagram's carousel composer, no merging needed, Instagram mixes media types in a carousel natively. This is the only part of the skill that needs `ffmpeg`.
 
 ## Why 1080x1350 and not 1080x1080
 

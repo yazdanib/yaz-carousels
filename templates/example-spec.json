@@ -1,5 +1,5 @@
 {
-  "_comment": "This is the schema reference AND the generic default look (used when the user has no brand colours/fonts of their own). Copy this file per project, don't edit it in place. Headline lengths here also model the word caps in SKILL.md: cover 8 words max, hook2/content/cta similar.",
+  "_comment": "This is the schema reference AND the generic default look (used when the user has no brand colours/fonts of their own). Copy this file per project, don't edit it in place. Demonstrates: a short cover headline (it renders huge, at ~75% of the frame, so brevity still matters there), left-aligned content slides, a punch slide for the closure beat, and the CTA confirmed wording.",
   "palette": {
     "bg": "#F6F7FB",
     "ink": "#12151C",
@@ -18,8 +18,7 @@
     {
       "type": "cover",
       "kicker": "Topic label",
-      "headline": "A headline that never gives away the answer",
-      "swipe_hint": "Swipe →"
+      "headline": "A headline that never gives away the answer"
     },
     {
       "type": "hook2",
@@ -30,8 +29,13 @@
       "type": "content",
       "kicker": "Worth knowing",
       "badge_icon": "✓",
-      "headline": "One idea per slide",
-      "body": "One short sentence. Never a paragraph."
+      "headline": "A slide can continue the last one",
+      "body": "Storytelling and open loops are fine. Cutting a real story down to a fake one-liner isn't."
+    },
+    {
+      "type": "content",
+      "punch": true,
+      "headline": "That's the whole idea."
     },
     {
       "type": "cta",

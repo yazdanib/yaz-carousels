@@ -100,19 +100,27 @@ html,body{{
 .bg-image{{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; z-index:0; }}
 .scrim{{ position:absolute; inset:0; background:linear-gradient(180deg, rgba(0,0,0,.15), rgba(0,0,0,.55)); z-index:1; }}
 .content{{ position:relative; z-index:2; height:100%; display:flex; flex-direction:column;
-           align-items:center; text-align:center; }}
+           align-items:center; text-align:left; }}
 .headline{{ font-family:'{spec.get("headline_font","Fraunces")}',Georgia,serif; font-weight:700;
             line-height:1.08; letter-spacing:-.5px; width:100%; }}
 .body-text{{ font-size:38px; line-height:1.45; font-weight:400; width:100%; }}
-/* Pill-shaped badge for the kicker/label, sits pinned near the top,
-   independent of the headline block below it (not stacked as one
-   vertically-centered group). */
-.badge-pill{{ display:inline-flex; align-items:center; gap:12px; padding:16px 30px;
-              border-radius:100px; font-size:24px; font-weight:700; width:fit-content; }}
+/* "Punch" slides (a single big centred statement, no pill, no body) break
+   both rules above on purpose: centred text, centred block. */
+.punch-wrap{{ flex:1; width:100%; display:flex; align-items:center; justify-content:center; }}
+.punch-wrap .headline{{ text-align:center; }}
+/* Pill-shaped badge for the kicker/label. Sits directly above the headline
+   as part of the same left-aligned group, a small gap between them, not
+   pinned separately at the very top of the slide. */
+.badge-pill{{ display:inline-flex; align-self:flex-start; align-items:center; gap:12px;
+              padding:16px 30px; border-radius:100px; font-size:24px; font-weight:700;
+              width:fit-content; margin-bottom:18px; }}
 .badge-pill .icon{{ width:30px; height:30px; border-radius:50%; display:flex;
                      align-items:center; justify-content:center; font-size:16px;
                      font-weight:900; flex:0 0 auto; }}
-.badge{{ display:flex; align-items:center; gap:14px; }}
+/* The handle/logo mark is the one element that always stays left-aligned
+   and pinned to the top, regardless of how everything else on the slide
+   is arranged. */
+.badge{{ display:flex; align-self:flex-start; align-items:center; gap:14px; text-align:left; }}
 .badge img{{ width:52px; height:52px; border-radius:50%; object-fit:cover; }}
 .badge .names{{ display:flex; flex-direction:column; line-height:1.25; }}
 .badge .handle{{ font-weight:700; font-size:24px; }}
@@ -123,8 +131,14 @@ html,body{{
 .pagecount{{ position:absolute; bottom:0; left:0; font-size:22px; font-weight:600; z-index:2; }}
 .swipe-pin{{ position:absolute; bottom:0; right:0; font-size:22px; font-weight:600;
              letter-spacing:.04em; z-index:2; }}
-.cta-pill{{ display:inline-block; padding:22px 44px; border-radius:100px; font-weight:700;
-            font-size:30px; width:fit-content; }}
+.cta-pill{{ display:inline-block; align-self:flex-start; padding:22px 44px; border-radius:100px;
+            font-weight:700; font-size:30px; width:fit-content; }}
+/* The cover's headline fills the majority of the frame: this wrapper
+   absorbs essentially all the space not used by the handle mark and the
+   swipe hint, so a short hook renders large rather than merely "bigger
+   than body text". */
+.cover-wrap{{ flex:1; width:100%; display:flex; flex-direction:column; align-items:center;
+              justify-content:center; text-align:center; }}
 """
 
 
@@ -180,26 +194,31 @@ def render_slide_html(spec: dict, slide: dict, index: int, total: int) -> str:
 
     body_html = ""
 
-    # Layout grammar, all four types: any top mark (handle/logo or badge
-    # pill) is pinned near the top with NO auto margin, then the headline
-    # block is pushed down with margin-top:auto so it settles in the lower
-    # portion rather than sitting dead-centre, with a reserved bottom gap
-    # so it never collides with a corner-pinned page number or swipe hint.
+    # Layout grammar: the handle/logo mark (cover, cta) is the only thing
+    # pinned separately at the very top, always left-aligned. Everything
+    # else, pill + headline + body, is ONE group so the pill sits directly
+    # above the headline with a small gap, not stranded at the top of the
+    # slide with a huge gap to the headline below it. That group gets
+    # margin-top:auto so it settles in the lower portion of the frame,
+    # with a reserved bottom gap so it never collides with a corner-pinned
+    # page number or swipe hint. Headline/body text is left-aligned by
+    # default; a "punch" slide (one big centred statement, no pill, no
+    # body) is the deliberate exception.
 
     if stype == "cover":
         badge = render_badge(spec, text_color)
         body_html = f"""
           <div>{badge}</div>
-          <div style="margin-top:auto; margin-bottom:150px; width:100%;">
+          <div class="cover-wrap">
             {render_badge_pill(slide, pal, on_colored_bg) if slide.get('kicker') else ""}
-            <div class="headline" style="font-size:{slide.get('headline_size',112)}px; color:{text_color}; margin-top:{18 if slide.get('kicker') else 0}px;">{slide['headline']}</div>
+            <div class="headline" style="font-size:{slide.get('headline_size',140)}px; color:{text_color};">{slide['headline']}</div>
           </div>
           <div class="swipe-pin" style="color:{text_color};">{esc(slide.get('swipe_hint','Swipe →'))}</div>
         """
     elif stype == "hook2":
         body_html = f"""
-          <div>{render_badge_pill(slide, pal, on_colored_bg)}</div>
           <div style="margin-top:auto; margin-bottom:150px; width:100%;">
+            {render_badge_pill(slide, pal, on_colored_bg)}
             <div class="headline" style="font-size:{slide.get('headline_size',78)}px; color:{text_color};">{slide['headline']}</div>
             {"<div class='body-text' style='margin-top:26px; color:" + text_color + ";'>" + esc(slide.get('body','')) + "</div>" if slide.get('body') else ""}
           </div>
@@ -210,16 +229,24 @@ def render_slide_html(spec: dict, slide: dict, index: int, total: int) -> str:
           <div>{badge}</div>
           <div style="margin-top:auto; width:100%;">
             {render_badge_pill(slide, pal, on_colored_bg) if slide.get('kicker') else ""}
-            <div class="headline" style="font-size:{slide.get('headline_size',70)}px; color:{text_color}; margin-top:{18 if slide.get('kicker') else 0}px; margin-bottom:24px;">{slide['headline']}</div>
+            <div class="headline" style="font-size:{slide.get('headline_size',70)}px; color:{text_color}; margin-bottom:24px;">{slide['headline']}</div>
             <div class="body-text" style="color:{text_color}; margin-bottom:60px;">{esc(slide.get('body',''))}</div>
             <div class="cta-pill" style="background:{pal.get('on_accent','#FFFFFF')}; color:{pal['accent']};">{esc(slide['cta_text'])}</div>
           </div>
         """
+    elif slide.get("punch"):
+        # A single big centred statement: no pill, no body, dead-centre.
+        body_html = f"""
+          <div class="punch-wrap">
+            <div class="headline" style="font-size:{slide.get('headline_size',86)}px; color:{text_color};">{slide['headline']}</div>
+          </div>
+          <div class="pagecount" style="color:{text_color}; opacity:.55;">{index:02d}/{total-1:02d}</div>
+        """
     else:  # content
         num_label = f'{index:02d}' if slide.get("show_number", True) else ""
         body_html = f"""
-          <div>{render_badge_pill(slide, pal, on_colored_bg)}</div>
           <div style="margin-top:auto; margin-bottom:130px; width:100%;">
+            {render_badge_pill(slide, pal, on_colored_bg)}
             <div class="headline" style="font-size:{slide.get('headline_size',62)}px; color:{text_color}; margin-bottom:28px;">{slide['headline']}</div>
             {"<div class='body-text' style='color:" + text_color + ";'>" + esc(slide.get('body','')) + "</div>" if slide.get('body') else ""}
           </div>
