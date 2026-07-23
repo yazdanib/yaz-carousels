@@ -17,7 +17,10 @@ Top level:
     "palette": {"bg": "#...", "ink": "#...", "accent": "#...",
                  "on_accent": "#...", "muted": "#..."},
     "fonts_css": "fonts.css",            // pre-built, see fetch_fonts.py
-    "headline_font": "Fraunces",
+    "headline_font": "Fraunces",         // the secondary/default headline font
+    "punch_font": null,                  // optional: a bolder display font for
+                                          // "punch" slides; cover headlines mix
+                                          // it with headline_font via **word**
     "body_font": "Inter",
     "handle": "@yourhandle",
     "display_name": "Your Name",
@@ -42,6 +45,7 @@ import argparse
 import base64
 import json
 import mimetypes
+import re
 import shutil
 import subprocess
 import sys
@@ -84,6 +88,26 @@ def esc(text: str) -> str:
                 .replace(">", "&gt;").replace('"', "&quot;"))
 
 
+def render_mixed_headline(text: str, punch_font: str, secondary_font: str) -> str:
+    """Cover headlines mix two fonts: **word** segments render in the bold
+    punchy display font (uppercased, for emphasis), everything else in the
+    secondary font. Used only where a spec sets both headline_font (the
+    secondary) and punch_font (the punchy one)."""
+    parts = re.split(r"\*\*(.+?)\*\*", text)
+    out = []
+    for i, part in enumerate(parts):
+        if not part:
+            continue
+        if i % 2 == 1:
+            out.append(
+                f'<span style="font-family:\'{punch_font}\',sans-serif; '
+                f'text-transform:uppercase; letter-spacing:.01em;">{esc(part)}</span>'
+            )
+        else:
+            out.append(f'<span style="font-family:\'{secondary_font}\',Georgia,serif;">{esc(part)}</span>')
+    return "".join(out)
+
+
 def build_base_css(spec: dict) -> str:
     pal = spec["palette"]
     fonts_css = Path(spec["fonts_css"]).read_text() if spec.get("fonts_css") else ""
@@ -103,11 +127,17 @@ html,body{{
            align-items:center; text-align:left; }}
 .headline{{ font-family:'{spec.get("headline_font","Fraunces")}',Georgia,serif; font-weight:700;
             line-height:1.08; letter-spacing:-.5px; width:100%; }}
-.body-text{{ font-size:38px; line-height:1.45; font-weight:400; width:100%; }}
+.body-text{{ font-size:42px; line-height:1.45; font-weight:400; width:100%; }}
 /* "Punch" slides (a single big centred statement, no pill, no body) break
    both rules above on purpose: centred text, centred block. */
 .punch-wrap{{ flex:1; width:100%; display:flex; align-items:center; justify-content:center; }}
 .punch-wrap .headline{{ text-align:center; }}
+/* hook2/content/cta: the pill+headline+body group sits vertically centred
+   in the space between the top badge (if any) and the bottom page number/
+   swipe hint, rather than pinned to the bottom of the frame. Text itself
+   stays left-aligned; only the group's vertical position is centred. */
+.mid-wrap{{ flex:1; width:100%; display:flex; flex-direction:column;
+            justify-content:center; align-items:flex-start; }}
 /* Pill-shaped badge for the kicker/label. Sits directly above the headline
    as part of the same left-aligned group, a small gap between them, not
    pinned separately at the very top of the slide. */
@@ -205,21 +235,25 @@ def render_slide_html(spec: dict, slide: dict, index: int, total: int) -> str:
     # default; a "punch" slide (one big centred statement, no pill, no
     # body) is the deliberate exception.
 
+    headline_font = spec.get("headline_font", "Fraunces")
+    punch_font = spec.get("punch_font", headline_font)
+
     if stype == "cover":
         badge = render_badge(spec, text_color)
+        headline_html = render_mixed_headline(slide["headline"], punch_font, headline_font)
         body_html = f"""
           <div>{badge}</div>
           <div class="cover-wrap">
             {render_badge_pill(slide, pal, on_colored_bg) if slide.get('kicker') else ""}
-            <div class="headline" style="font-size:{slide.get('headline_size',140)}px; color:{text_color};">{slide['headline']}</div>
+            <div class="headline" style="font-size:{slide.get('headline_size',140)}px; color:{text_color};">{headline_html}</div>
           </div>
           <div class="swipe-pin" style="color:{text_color};">{esc(slide.get('swipe_hint','Swipe →'))}</div>
         """
     elif stype == "hook2":
         body_html = f"""
-          <div style="margin-top:auto; margin-bottom:150px; width:100%;">
+          <div class="mid-wrap">
             {render_badge_pill(slide, pal, on_colored_bg)}
-            <div class="headline" style="font-size:{slide.get('headline_size',78)}px; color:{text_color};">{slide['headline']}</div>
+            <div class="headline" style="font-size:{slide.get('headline_size',96)}px; color:{text_color};">{esc(slide['headline'])}</div>
             {"<div class='body-text' style='margin-top:26px; color:" + text_color + ";'>" + esc(slide.get('body','')) + "</div>" if slide.get('body') else ""}
           </div>
         """
@@ -227,27 +261,28 @@ def render_slide_html(spec: dict, slide: dict, index: int, total: int) -> str:
         badge = render_badge(spec, text_color)
         body_html = f"""
           <div>{badge}</div>
-          <div style="margin-top:auto; width:100%;">
+          <div class="mid-wrap">
             {render_badge_pill(slide, pal, on_colored_bg) if slide.get('kicker') else ""}
-            <div class="headline" style="font-size:{slide.get('headline_size',70)}px; color:{text_color}; margin-bottom:24px;">{slide['headline']}</div>
-            <div class="body-text" style="color:{text_color}; margin-bottom:60px;">{esc(slide.get('body',''))}</div>
+            <div class="headline" style="font-size:{slide.get('headline_size',84)}px; color:{text_color}; margin-bottom:24px;">{esc(slide['headline'])}</div>
+            <div class="body-text" style="color:{text_color}; margin-bottom:44px;">{esc(slide.get('body',''))}</div>
             <div class="cta-pill" style="background:{pal.get('on_accent','#FFFFFF')}; color:{pal['accent']};">{esc(slide['cta_text'])}</div>
           </div>
         """
     elif slide.get("punch"):
-        # A single big centred statement: no pill, no body, dead-centre.
+        # A single big centred statement: no pill, no body, dead-centre,
+        # always set in the punchy display font rather than the secondary.
         body_html = f"""
           <div class="punch-wrap">
-            <div class="headline" style="font-size:{slide.get('headline_size',86)}px; color:{text_color};">{slide['headline']}</div>
+            <div class="headline" style="font-size:{slide.get('headline_size',86)}px; color:{text_color}; font-family:'{punch_font}',sans-serif;">{esc(slide['headline'])}</div>
           </div>
           <div class="pagecount" style="color:{text_color}; opacity:.55;">{index:02d}/{total-1:02d}</div>
         """
     else:  # content
         num_label = f'{index:02d}' if slide.get("show_number", True) else ""
         body_html = f"""
-          <div style="margin-top:auto; margin-bottom:130px; width:100%;">
+          <div class="mid-wrap">
             {render_badge_pill(slide, pal, on_colored_bg)}
-            <div class="headline" style="font-size:{slide.get('headline_size',62)}px; color:{text_color}; margin-bottom:28px;">{slide['headline']}</div>
+            <div class="headline" style="font-size:{slide.get('headline_size',76)}px; color:{text_color}; margin-bottom:28px;">{esc(slide['headline'])}</div>
             {"<div class='body-text' style='color:" + text_color + ";'>" + esc(slide.get('body','')) + "</div>" if slide.get('body') else ""}
           </div>
           <div class="pagecount" style="color:{text_color}; opacity:.55;">{num_label}/{total-1:02d}</div>

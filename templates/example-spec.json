@@ -1,5 +1,5 @@
 {
-  "_comment": "This is the schema reference AND the generic default look (used when the user has no brand colours/fonts of their own). Copy this file per project, don't edit it in place. Demonstrates: a short cover headline (it renders huge, at ~75% of the frame, so brevity still matters there), left-aligned content slides, a punch slide for the closure beat, and the CTA confirmed wording.",
+  "_comment": "This is the schema reference AND the generic default look (used when the user has no brand colours/fonts of their own). Copy this file per project, don't edit it in place. Demonstrates: a short cover headline (it renders huge, at ~75% of the frame, so brevity still matters there), left-aligned content slides vertically centred in the frame, a punch slide for the closure beat, and the CTA confirmed wording. punch_font is optional, left null here since this generic look uses a single font throughout.",
   "palette": {
     "bg": "#F6F7FB",
     "ink": "#12151C",
@@ -10,6 +10,7 @@
   },
   "fonts_css": "fonts.css",
   "headline_font": "Fraunces",
+  "punch_font": null,
   "body_font": "Inter",
   "handle": "@yourhandle",
   "display_name": "Your Name",

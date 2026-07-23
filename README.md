@@ -63,12 +63,13 @@ See [`templates/example-spec.json`](templates/example-spec.json) for a complete,
   "palette": {"bg": "#...", "ink": "#...", "accent": "#...", "accent2": "#...", "on_accent": "#..."},
   "fonts_css": "fonts.css",
   "headline_font": "Fraunces",
+  "punch_font": null,
   "body_font": "Inter",
   "handle": "@yourhandle",
   "display_name": "Your Name",
   "logo": null,
   "slides": [
-    {"type": "cover", "kicker": "...", "headline": "..."},
+    {"type": "cover", "kicker": "...", "headline": "A headline that can **emphasise** a word or two"},
     {"type": "hook2", "kicker": "...", "headline": "..."},
     {"type": "content", "headline": "...", "body": "..."},
     {"type": "content", "punch": true, "headline": "One big centred statement"},
@@ -79,11 +80,13 @@ See [`templates/example-spec.json`](templates/example-spec.json) for a complete,
 
 All file paths in a spec (`fonts_css`, `logo`, any slide's `background_image`) are relative to the spec file itself, not to whatever directory you happen to run the script from.
 
-Headline and body text render left-aligned by default. A `content` slide with `"punch": true` is the exception: one big statement, no pill, no body, centred both ways, meant for a plot-twist or closure moment, used sparingly.
+Headline and body text render left-aligned by default. Slide 2 onward, the pill+headline+body group sits vertically centred in the frame rather than pinned to the bottom. A `content` slide with `"punch": true` is the exception: one big statement, no pill, no body, centred both ways, meant for a plot-twist or closure moment, used sparingly, and always set in `punch_font` if one is configured.
+
+Set `punch_font` (e.g. `"Anton"`) for a bolder display face reserved for `punch` slides. A cover headline can mix it with the regular `headline_font` by wrapping words in `**double asterisks**`, they render uppercase in `punch_font`, the rest stays in `headline_font`.
 
 ## Style B: a video cover
 
-Instead of every slide being a rendered PNG, Style B swaps the cover for an actual video with the headline and handle overlaid on top, cropped to the carousel frame, inside a light frame border, then continues as normal PNG slides from slide 2 on. This is the "video carousel" pattern some creators use for their opening slide.
+Instead of every slide being a rendered PNG, Style B swaps the cover for an actual video: cropped and inset into a smaller, rounded-corner frame (not full-bleed), with the display name pinned top-left in the margin, the handle bottom-left, a swipe hint bottom-right, and the hook headline overlaid on the video with a soft dark scrim behind it for legibility. Continues as normal PNG slides from slide 2 on. This is the "video carousel" pattern some creators use for their opening slide.
 
 ```bash
 python3 scripts/render_video_cover.py raw/cover.mp4 --spec spec.json --out slides/slide-01.mp4
@@ -98,12 +101,12 @@ Add a `cover_video` block to the spec:
     "source": "raw/cover.mp4",
     "headline": "start here",
     "position": "upper-left",
-    "frame": true
+    "frame_color": "#F7FAF9"
   }
 }
 ```
 
-You upload the `.mp4` as position 1 and the `.png` files as the rest, directly in Instagram's carousel composer, no merging needed, Instagram mixes media types in a carousel natively. This is the only part of the skill that needs `ffmpeg`.
+`frame_color` is the margin colour around the video, defaults to the palette's `bg`. You upload the `.mp4` as position 1 and the `.png` files as the rest, directly in Instagram's carousel composer, no merging needed, Instagram mixes media types in a carousel natively. This is the only part of the skill that needs `ffmpeg`.
 
 ## Why 1080x1350 and not 1080x1080
 

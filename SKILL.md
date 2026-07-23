@@ -35,12 +35,13 @@ That's AIDA: Attention (1-2), Interest (early content), Desire (late content), A
 ## Layout convention (the renderer already does this, don't fight it)
 
 - **The kicker is a pill-shaped chip, not plain coloured text**, sitting directly above the headline with a small gap, as one left-aligned group, not stranded at the top of the slide.
+- **On slide 2 onward (`hook2`/`content`/`cta`), the pill+headline+body group sits vertically centred in the frame**, in the space between the top badge (if shown) and the bottom page number/swipe hint, rather than pinned to the bottom. Text itself stays left-aligned, only the group's vertical position is centred. Headline sizes default large to fill that space with real presence (96px hook2, 76px content, 84px cta), not just "bigger than body text."
 - **Headline and body text are left-aligned by default.** Multi-line centred paragraphs read worse than left-aligned ones; centring is reserved for `punch` slides, where a single short statement genuinely looks better dead-centre.
 - **The handle/account name is the one element that's always left-aligned and pinned to the top**, on every slide type that shows it, regardless of how the rest of that slide is arranged.
 - **The cover headline fills roughly 75% of the frame.** It's not just "the biggest text", the layout gives it almost the whole page, centred both ways, so a short line reads as a real visual statement rather than a slightly-larger heading.
 - **Page numbers sit bottom-left, small and muted.** Not top-right.
-- **CTA buttons and swipe hints are bottom-anchored**, with real margin above the true edge, not flush against it. The CTA button is left-aligned with the headline/body above it, not centred.
 - **Use a genuinely bright, saturated colour for the cover/hook2/cta slides, never near-black.** A dark neutral reads as heavy and downbeat; a bright colour reads as energetic and is what makes a text-only slide still feel designed. If a brand's actual colour is dark, that's fine, but don't default to near-black when nothing else was specified.
+- **Optional: a second "punchy" display font.** Set `punch_font` at the top level (e.g. `"Anton"`) alongside `headline_font` (the secondary, e.g. `"EB Garamond"`) for a bolder, condensed display face reserved for high-impact moments. `punch:true` slides render entirely in it. A cover headline can mix both fonts in one line by wrapping the punchy word(s) in `**double asterisks**`, e.g. `"You Don't Need **Canva** to Create **Carousels** Anymore"`, the marked words render uppercase in `punch_font`, everything else in `headline_font`. Optional: if `punch_font` isn't set, everything just uses `headline_font` as before.
 
 ## Format facts (don't guess these, they're checked)
 
@@ -59,7 +60,7 @@ Ask (in one message, not five separate ones):
 ### 2. Ask about brand assets, don't assume them
 
 - **Colours:** do they have brand hex codes? If not, say you'll pick a clean default pairing and show it to them before finalizing, don't just silently apply something.
-- **Fonts:** do they have specific font names/files? If not, default to a strong pairing (this skill defaults to Fraunces for headlines, Inter for body, both fetched automatically, no install needed). If they have brand fonts already in use elsewhere (e.g. from a previous skill/PDF), ask if they want those reused instead.
+- **Fonts:** do they have specific font names/files? If not, default to a strong pairing (this skill defaults to Fraunces for headlines, Inter for body, both fetched automatically, no install needed). If they have brand fonts already in use elsewhere (e.g. from a previous skill/PDF), ask if they want those reused instead. If they want a bolder, more graphic look, offer a `punch_font` (e.g. `"Anton"`) alongside the regular `headline_font` (e.g. `"EB Garamond"`), see the layout convention section above.
 - **Logo or handle:** do they have a logo file? If yes, use it on the cover and CTA slide. If no, use their handle + display name instead, that's the default and it's completely fine.
 
 ### 3. Ask about images, but don't block on it
@@ -100,19 +101,19 @@ Read the rendered PNGs back and actually look at them before telling the user it
 
 ## Style B: a video cover instead of a text-only one
 
-Style A (everything above) is the default: every slide is a rendered PNG. Style B swaps just the cover for a real video, cropped to the carousel frame, with the headline and handle overlaid on top, inside a light frame border, then continues as normal PNG slides from slide 2 onward. This is the "video carousel" pattern some creators use, a short clip with a handwritten-style hook overlaid as slide one.
+Style A (everything above) is the default: every slide is a rendered PNG. Style B swaps just the cover for a real video: it's inset into a smaller, rounded-corner frame within the canvas (not full-bleed), with the display name pinned top-left in the margin above it, the handle bottom-left and a swipe hint bottom-right in the margin below it, and the hook headline overlaid on the video itself. Slides 2 onward continue as normal PNG slides. This is the "video carousel" pattern some creators use, a short clip with a hook overlaid as slide one, framed like a photo rather than stretched full-screen.
 
 **Ask before assuming Style B.** Default to Style A. Only switch when the user has an actual video clip they want as the cover, or explicitly asks for a video-first carousel.
 
 ### How it's built
 
-1. Slide 1 is produced by `scripts/render_video_cover.py`, not `render_carousel.py`. It crops the source video to 1080x1350, builds the same kind of transparent text overlay this skill always uses (an HTML page shot by headless Chrome, not ffmpeg's own text rendering), and composites it onto the video in one ffmpeg pass.
+1. Slide 1 is produced by `scripts/render_video_cover.py`, not `render_carousel.py`. It crops the source video into the inset frame, rounds its corners via an alpha mask (ffmpeg has no built-in rounded-corner filter, so this is a black/white rounded-rect PNG merged onto the video with `alphamerge`), applies a soft dark gradient scrim behind the headline for legibility against busy footage, and overlays the headline text on top, an HTML page shot by headless Chrome, not ffmpeg's own text rendering.
 2. Slides 2 onward render exactly as Style A, through `render_carousel.py`, numbered starting from 2 so they sit correctly after the video in the final upload order.
 3. The user uploads the resulting `.mp4` as position 1 and the `.png` files as the rest, directly in Instagram's own carousel composer. This skill doesn't merge them into one file, Instagram doesn't need that, it mixes media types in a carousel natively.
 
 ### Spec addition
 
-Add a `cover_video` block to the spec (same top-level `palette`/`fonts_css`/`handle`/`display_name` apply to it):
+Add a `cover_video` block to the spec (same top-level `palette`/`fonts_css`/`handle`/`display_name`/`headline_font`/`punch_font` apply to it):
 
 ```json
 {
@@ -120,7 +121,7 @@ Add a `cover_video` block to the spec (same top-level `palette`/`fonts_css`/`han
     "source": "raw/cover.mp4",
     "headline": "start here",
     "position": "upper-left",
-    "frame": true
+    "frame_color": "#F7FAF9"
   },
   "slides": [
     {"type": "hook2", "...": "..."},
@@ -129,7 +130,7 @@ Add a `cover_video` block to the spec (same top-level `palette`/`fonts_css`/`han
 }
 ```
 
-`position` is `upper-left` (matches the reference pattern most creators use), `upper-center`, `center`, or `lower-left`. `frame` toggles the white rounded border, on by default, it's what makes a video read as a considered cover rather than a random clip.
+`position` places the headline on the video: `upper-left` (matches the reference pattern most creators use), `upper-center`, `center`, or `lower-left`, it also determines which direction the legibility scrim fades. `frame_color` is the margin colour around the video, defaults to the palette's `bg` so it matches the rest of the carousel rather than a flat white. The cover headline supports the same `**word**` mixed-font markup as a normal PNG cover.
 
 ```bash
 python3 scripts/render_video_cover.py raw/cover.mp4 --spec spec.json --out slides/slide-01.mp4
